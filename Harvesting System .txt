@@ -1,0 +1,90 @@
+// Automatic Harvested Crop Protection System
+// Arduino Code using GSM and Rain Sensor
+
+#include <SoftwareSerial.h>
+
+// Rain Sensor Pin
+#define rainSensor A0
+
+// Motor Driver Pins
+#define motor1 8
+#define motor2 9
+
+// GSM Module Pins
+SoftwareSerial gsm(10, 11); // RX, TX
+
+int rainValue;
+
+void setup() {
+
+  Serial.begin(9600);
+  gsm.begin(9600);
+
+  pinMode(rainSensor, INPUT);
+
+  pinMode(motor1, OUTPUT);
+  pinMode(motor2, OUTPUT);
+
+  digitalWrite(motor1, LOW);
+  digitalWrite(motor2, LOW);
+
+  Serial.println("Automatic Crop Protection System Started");
+}
+
+void loop() {
+
+  // Read Rain Sensor Value
+  rainValue = analogRead(rainSensor);
+
+  Serial.print("Rain Sensor Value: ");
+  Serial.println(rainValue);
+
+  // Rain Detected
+  if (rainValue < 500) {
+
+    Serial.println("Rain Detected");
+
+    // Motor rotates to cover crops
+    digitalWrite(motor1, HIGH);
+    digitalWrite(motor2, LOW);
+
+    // Send SMS Alert
+    sendSMS();
+
+    delay(5000);
+
+    // Stop Motor
+    digitalWrite(motor1, LOW);
+    digitalWrite(motor2, LOW);
+  }
+
+  // No Rain
+  else {
+
+    Serial.println("No Rain");
+
+    digitalWrite(motor1, LOW);
+    digitalWrite(motor2, LOW);
+  }
+
+  delay(1000);
+}
+
+// GSM SMS Function
+void sendSMS() {
+
+  gsm.println("AT+CMGF=1");
+  delay(1000);
+
+  gsm.println("AT+CMGS=\"+91XXXXXXXXXX\"");
+  delay(1000);
+
+  gsm.println("Alert: Rain detected! Crop protection system activated.");
+  delay(100);
+
+  gsm.write(26);
+
+  delay(3000);
+
+  Serial.println("SMS Sent Successfully");
+}
